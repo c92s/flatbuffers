@@ -1736,6 +1736,7 @@ class PythonGenerator : public BaseGenerator {
   void GenInitialize(const StructDef &struct_def, std::string *code_ptr,
                      std::set<std::string> *import_list) const {
     std::string code;
+    std::string params;
     std::set<std::string> import_typing_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1771,14 +1772,15 @@ class PythonGenerator : public BaseGenerator {
       const auto default_value = GetDefaultValue(field);
       // Wrties the init statement.
       const auto field_field = namer_.Field(field);
-      code += GenIndents(2) + "self." + field_field + " = " + default_value +
-              "  # type: " + field_type;
+      params += ", " + field_field + " = " + default_value;
+      code += GenIndents(2) + "self." + field_field + " = " + field_field +
+              "  # type: " + field_type;      
     }
 
     // Writes __init__ method.
     auto &code_base = *code_ptr;
     GenReceiverForObjectAPI(struct_def, code_ptr);
-    code_base += "__init__(self):";
+    code_base += "__init__(self" + params + "):";
     if (code.empty()) {
       code_base += GenIndents(2) + "pass";
     } else {
